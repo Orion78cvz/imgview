@@ -218,7 +218,8 @@ namespace imgview {
 	/// 指定された画像を読み込み、各種コンポーネントを更新する
 	/// </summary>
 	private: System::Void LoadImage(String^ location) {
-		this->pictureImage->Load(location); //TODO: 非同期処理にするか検討
+		//TODO: 失敗時の処理
+		this->pictureImage->Load(location); //NOTE: パフォーマンスが気になるなら非同期処理にするか検討(前後一つずつ裏でロードする等)
 
 		this->statusFileIndex->Text = String::Format("({0:d}/{1:d})", this->currentPos + 1, this->foundFileNames->Length);
 
