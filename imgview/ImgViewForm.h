@@ -397,7 +397,6 @@ namespace imgview {
 			msclr::com::ptr<IFolderView2> view;
 			sv.QueryInterface(view);
 			if(!view){
-				//TODO: do what?
 			} else {
 				SORTCOLUMN sort;
 				PWSTR key;
