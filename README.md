@@ -23,7 +23,7 @@ a simple photo viewer
 
 ## Description
 
-When opening from Explorer window, enumerate the image files by the order same as the Explorer.
+When opening from Explorer window, enumerate the image files by the order same as that Explorer.
 
 ## Author
 
