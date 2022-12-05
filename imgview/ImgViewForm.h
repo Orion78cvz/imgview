@@ -334,7 +334,7 @@ namespace imgview {
 				break;
 			}
 			default:
-				Array::Sort(ret);
+				Array::Sort(ret); //XXX: alphabetical sort only (different from Explorer)
 				break;
 		}
 
