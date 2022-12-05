@@ -218,13 +218,16 @@ namespace imgview {
 	/// 指定された画像を読み込み、各種コンポーネントを更新する
 	/// </summary>
 	private: System::Void LoadImage(String^ location) {
-		//TODO: 失敗時の処理
-		this->pictureImage->Load(location); //NOTE: パフォーマンスが気になるなら非同期処理にするか検討(前後一つずつ裏でロードする等)
-
+		try {
+			this->pictureImage->Load(location); //NOTE: パフォーマンスが気になるなら非同期処理にするか検討(前後一つずつ裏でロードする等)
+			ImgViewForm_SizeChanged(nullptr, nullptr);
+		}
+		catch(Exception^) {
+			this->pictureImage->Image = this->pictureImage->ErrorImage; //NOTE: 拡大されるが結局エラーなので気にしない
+		}
 		this->statusFileIndex->Text = String::Format("({0:d}/{1:d})", this->currentPos + 1, this->foundFileNames->Length);
 
 		this->statusFilePath->Text = location;
-		ImgViewForm_SizeChanged(nullptr, nullptr);
 	}
 
 	/// <summary>
@@ -299,22 +302,40 @@ namespace imgview {
 		Generic::List<String^>^ fls = gcnew Generic::List<String^>();
 		for each (String ^ ex in this->listImgExtensions) {
 			array<String^>^ fs = System::IO::Directory::GetFiles(dir, ex); //NOTE: 単一ディレクトリで固定ならばファイル名部分のみでよい
-			
-			//Array::Sort(files); //TODO: Array::Sort()が安定ソートではないのでデータ構造を変えて比較子を用意した方がよさそう
 			if(fs->Length > 0) fls->AddRange(fs);
 		}
 
 		array<String^>^ ret = fls->ToArray();
-		//TEST: とりあえずファイル名か日付だけ
-		if (!orderby) {
-			Array::Sort(ret);
-		}
-		else {
-			array<DateTime>^ dates = gcnew array<DateTime>(ret->Length);
-			for (int i = 0; i < ret->Length; i++) {
-				dates[i] = System::IO::File::GetLastWriteTime(ret[i]);
+		//Array::Sort(ret);
+		//TODO: Array::Sort()が安定ソートではないので同一値の中で並べ替えが不定になってしまう。データ構造を変えて比較子を用意した方がよさそう
+		switch(orderby) {
+			case 1: {
+				array<DateTime>^ dates = gcnew array<DateTime>(ret->Length);
+				for (int i = 0; i < ret->Length; i++) {
+					dates[i] = System::IO::File::GetLastWriteTime(ret[i]);
+				}
+				Array::Sort(dates, ret);
+				break;
 			}
-			Array::Sort(dates, ret);
+			case 2: {
+				array<Int64>^ sizes = gcnew array<Int64>(ret->Length);
+				for (int i = 0; i < ret->Length; i++) {
+					sizes[i] = System::IO::FileInfo(ret[i]).Length;
+				}
+				Array::Sort(sizes, ret);
+				break;
+			}
+			case 3: {
+				array<String^>^ exts = gcnew array<String^>(ret->Length);
+				for (int i = 0; i < ret->Length; i++) {
+					exts[i] = System::IO::Path::GetExtension(ret[i]);
+				}
+				Array::Sort(exts, ret);
+				break;
+			}
+			default:
+				Array::Sort(ret);
+				break;
 		}
 
 		return ret;
@@ -378,7 +399,7 @@ namespace imgview {
 			rc = ::GetWindowText(hwnd, title, directory->Length + 2);
 			String^ ttl = gcnew String(title);
 			if(rc == 0 || !ttl->Equals(directory)) continue;
-#ifdef __DEBUG
+#ifdef _DEBUG
 			System::Diagnostics::Debug::WriteLine("shell window found.");
 #endif
 
@@ -404,12 +425,15 @@ namespace imgview {
 				view->GetSortColumns(&sort, 1);
 				PSGetNameFromPropertyKey(sort.propkey, &key);
 				String^ ks = gcnew String(key);
-#ifdef __DEBUG
+#ifdef _DEBUG
 				System::Diagnostics::Debug::WriteLine(String::Format("Sort={0}", ks));
 #endif
-				//TEST: determines only name or timestamp
 				if (ks->EndsWith("DateModified")) {
 					ret = 1;
+				} else if (ks->EndsWith("Size")) {
+					ret = 2;
+				}else if (ks->EndsWith("ItemTypeText")) {
+					ret = 3;
 				}
 
 				break;
