@@ -5,19 +5,35 @@
 #include <shlobj.h>
 #include <exdisp.h>
 #include <msclr\com\ptr.h>
-#include <winuser.h>
 #include <propsys.h>
+
+#include <winuser.h>
+#include <shlwapi.h>
 
 #include "resource.h"
 
 namespace imgview {
-
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+
+	/// <summary>
+	/// IComparer implementation using the same method as Explorer
+	/// TODO: 並べ替え用のデータ構造を用意する際に別ファイルに分割する
+	/// </summary>
+	public ref class LogicalStringComparer : public Generic::IComparer<String^>
+	{
+	public:
+		virtual int Compare(String^ x, String^ y)
+		{
+			pin_ptr<const wchar_t> px = PtrToStringChars(x);
+			pin_ptr<const wchar_t> py = PtrToStringChars(y);
+			return ::StrCmpLogicalW(px, py);
+		}
+	};
 
 	/// <summary>
 	/// ImgViewForm の概要
@@ -295,7 +311,7 @@ namespace imgview {
 	}
 	private: array<String^>^ SeekDirectory(String^ filepath) {
 		String^ dir = System::IO::Path::GetDirectoryName(filepath);
-		int orderby = AcquireSortingOrder(dir, 0);
+		int orderby = this->AcquireSortingOrder(dir, 0);
 
 		Array::Sort(this->listImgExtensions);
 		
@@ -307,7 +323,7 @@ namespace imgview {
 
 		array<String^>^ ret = fls->ToArray();
 		//Array::Sort(ret);
-		//TODO: Array::Sort()が安定ソートではないので同一値の中で並べ替えが不定になってしまう。データ構造を変えて比較子を用意した方がよさそう
+		//TODO: Array::Sort()が安定ソートではないので同一値の中で並べ替えが不定になってしまう。データ型を作った方がよさそう
 		switch(orderby) {
 			case 1: {
 				array<DateTime>^ dates = gcnew array<DateTime>(ret->Length);
@@ -334,7 +350,7 @@ namespace imgview {
 				break;
 			}
 			default:
-				Array::Sort(ret); //XXX: alphabetical sort only (different from Explorer)
+				Array::Sort(ret, gcnew LogicalStringComparer());
 				break;
 		}
 
@@ -444,7 +460,8 @@ namespace imgview {
 
 		return ret;
 	}
-	
-};
+
+	};
+
 
 }
