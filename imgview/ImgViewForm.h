@@ -8,9 +8,10 @@
 #include <propsys.h>
 
 #include <winuser.h>
-#include <shlwapi.h>
 
 #include "resource.h"
+
+#include "FileSortInfo.h"
 
 namespace imgview {
 	using namespace System;
@@ -19,21 +20,6 @@ namespace imgview {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
-
-	/// <summary>
-	/// IComparer implementation using the same method as Explorer
-	/// TODO: 並べ替え用のデータ構造を用意する際に別ファイルに分割する
-	/// </summary>
-	public ref class LogicalStringComparer : public Generic::IComparer<String^>
-	{
-	public:
-		virtual int Compare(String^ x, String^ y)
-		{
-			pin_ptr<const wchar_t> px = PtrToStringChars(x);
-			pin_ptr<const wchar_t> py = PtrToStringChars(y);
-			return ::StrCmpLogicalW(px, py);
-		}
-	};
 
 	/// <summary>
 	/// ImgViewForm の概要

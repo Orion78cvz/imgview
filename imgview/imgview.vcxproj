@@ -126,9 +126,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FileSortInfo.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FileSortInfo.h" />
     <ClInclude Include="ImgViewForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
