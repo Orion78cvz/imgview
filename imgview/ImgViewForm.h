@@ -11,6 +11,7 @@
 
 #include "resource.h"
 
+#include "Settings.h"
 #include "FileSortInfo.h"
 
 namespace imgview {
@@ -29,10 +30,11 @@ namespace imgview {
 	public:
 		ImgViewForm(array<String^>^ filenames)
 		{
+			this->appSettings = gcnew imgview::Settings;
+
 			InitializeComponent();
-			
+		
 			this->InitializeExtensions();
-			
 			if(filenames && filenames->Length > 0) {
 				this->ShowSelectedImage(filenames, true);
 			}
@@ -58,10 +60,21 @@ namespace imgview {
 			}
 		}
 	protected:
+		imgview::Settings^ appSettings;
+
+	protected:
 		array<String^>^ foundFileNames = nullptr;
 		int currentPos = 0;
 	private: System::Windows::Forms::ToolStripStatusLabel^ statusFileIndex;
-	protected:
+	private: System::Windows::Forms::ToolStripMenuItem^ 表示VToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ 背景色BToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ menuBackgroundColorWhite;
+	private: System::Windows::Forms::ToolStripMenuItem^ menuBackgroundColorDefault;
+
+	private: System::Windows::Forms::ToolStripMenuItem^ menuBackgroundColorBlack;
+
+
+
 
 	protected:
 		array<String^>^ listImgExtensions;
@@ -108,6 +121,11 @@ namespace imgview {
 			this->ファイルFToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->menuOpenFile = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->menuExit = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->表示VToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->背景色BToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->menuBackgroundColorDefault = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->menuBackgroundColorWhite = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->menuBackgroundColorBlack = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->statusStrip = (gcnew System::Windows::Forms::StatusStrip());
 			this->statusDisplayRatio = (gcnew System::Windows::Forms::ToolStripStatusLabel());
 			this->statusFilePath = (gcnew System::Windows::Forms::ToolStripStatusLabel());
@@ -120,7 +138,10 @@ namespace imgview {
 			// 
 			// MainMenu
 			// 
-			this->MainMenu->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->ファイルFToolStripMenuItem });
+			this->MainMenu->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->ファイルFToolStripMenuItem,
+					this->表示VToolStripMenuItem
+			});
 			this->MainMenu->Location = System::Drawing::Point(0, 0);
 			this->MainMenu->Name = L"MainMenu";
 			this->MainMenu->Size = System::Drawing::Size(624, 24);
@@ -150,6 +171,49 @@ namespace imgview {
 			this->menuExit->Size = System::Drawing::Size(113, 22);
 			this->menuExit->Text = L"終了(&X)";
 			this->menuExit->Click += gcnew System::EventHandler(this, &ImgViewForm::menuExit_Click);
+			// 
+			// 表示VToolStripMenuItem
+			// 
+			this->表示VToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->背景色BToolStripMenuItem });
+			this->表示VToolStripMenuItem->Name = L"表示VToolStripMenuItem";
+			this->表示VToolStripMenuItem->Size = System::Drawing::Size(58, 20);
+			this->表示VToolStripMenuItem->Text = L"表示(&V)";
+			// 
+			// 背景色BToolStripMenuItem
+			// 
+			this->背景色BToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
+				this->menuBackgroundColorDefault,
+					this->menuBackgroundColorWhite, this->menuBackgroundColorBlack
+			});
+			this->背景色BToolStripMenuItem->Name = L"背景色BToolStripMenuItem";
+			this->背景色BToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+			this->背景色BToolStripMenuItem->Text = L"背景色(&B)";
+			// 
+			// menuBackgroundColorDefault
+			// 
+			this->menuBackgroundColorDefault->BackColor = System::Drawing::SystemColors::Control;
+			this->menuBackgroundColorDefault->Name = L"menuBackgroundColorDefault";
+			this->menuBackgroundColorDefault->Size = System::Drawing::Size(117, 22);
+			this->menuBackgroundColorDefault->Text = L"デフォルト";
+			this->menuBackgroundColorDefault->Click += gcnew System::EventHandler(this, &ImgViewForm::menuBackgroundColorDefault_Click);
+			// 
+			// menuBackgroundColorWhite
+			// 
+			this->menuBackgroundColorWhite->BackColor = System::Drawing::Color::White;
+			this->menuBackgroundColorWhite->ForeColor = System::Drawing::Color::Black;
+			this->menuBackgroundColorWhite->Name = L"menuBackgroundColorWhite";
+			this->menuBackgroundColorWhite->Size = System::Drawing::Size(117, 22);
+			this->menuBackgroundColorWhite->Text = L"白";
+			this->menuBackgroundColorWhite->Click += gcnew System::EventHandler(this, &ImgViewForm::menuBackgroundColorWhite_Click);
+			// 
+			// menuBackgroundColorBlack
+			// 
+			this->menuBackgroundColorBlack->BackColor = System::Drawing::Color::Black;
+			this->menuBackgroundColorBlack->ForeColor = System::Drawing::Color::White;
+			this->menuBackgroundColorBlack->Name = L"menuBackgroundColorBlack";
+			this->menuBackgroundColorBlack->Size = System::Drawing::Size(117, 22);
+			this->menuBackgroundColorBlack->Text = L"黒";
+			this->menuBackgroundColorBlack->Click += gcnew System::EventHandler(this, &ImgViewForm::menuBackgroundColorBlack_Click);
 			// 
 			// statusStrip
 			// 
@@ -203,6 +267,7 @@ namespace imgview {
 			this->MainMenuStrip = this->MainMenu;
 			this->Name = L"ImgViewForm";
 			this->Text = L"ImgView";
+			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &ImgViewForm::ImgViewForm_FormClosing);
 			this->Load += gcnew System::EventHandler(this, &ImgViewForm::ImgViewForm_Load);
 			this->SizeChanged += gcnew System::EventHandler(this, &ImgViewForm::ImgViewForm_SizeChanged);
 			this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &ImgViewForm::ImgViewForm_KeyDown);
@@ -241,8 +306,32 @@ namespace imgview {
 
 	/// <summary>
 	/// Form::OnLoad
+	///   Settingsを適用する
 	/// </summary>
 	private: System::Void ImgViewForm_Load(System::Object^ sender, System::EventArgs^ e) {
+		this->Size = this->appSettings->FormClientSize;
+		this->WindowState = this->appSettings->WindowState;
+		
+		this->pictureImage->BackColor = this->appSettings->BackgroundColor;
+	}
+	/// <summary>
+	/// Form::OnClosing
+	///   Settingsを保存する
+	/// </summary>
+	private: System::Void ImgViewForm_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) {
+		switch(this->WindowState) {
+		case FormWindowState::Normal:
+			this->appSettings->WindowState = FormWindowState::Normal;
+			this->appSettings->FormClientSize = this->Size;
+			break;
+		case FormWindowState::Maximized:
+			this->appSettings->WindowState = FormWindowState::Maximized;
+			break;
+		}
+
+		this->appSettings->BackgroundColor = this->pictureImage->BackColor;
+
+		this->appSettings->Save();
 	}
 
 	/// <summary>
@@ -365,7 +454,7 @@ namespace imgview {
 
 	/// <summary>
 	/// 対象ディレクトリを開いているExplorerのウィンドウを探し、ソート方法を取得する
-	/// TEST: 更新日時順なら1
+	/// TODO: メンバ関数にする必要がないのでFileSortInfoへ移動する
 	/// </summary>
 	private: int AcquireSortingOrder(String^ directory, int def) {
 		int ret = def;
@@ -447,7 +536,20 @@ namespace imgview {
 		return ret;
 	}
 
-	};
+	/// <summary>
+	/// 背景色変更
+	/// </summary>
+	private: System::Void menuBackgroundColorDefault_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->pictureImage->BackColor = System::Drawing::SystemColors::Control;
+	}
+	private: System::Void menuBackgroundColorWhite_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->pictureImage->BackColor = System::Drawing::Color::White;
+	}
+	private: System::Void menuBackgroundColorBlack_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->pictureImage->BackColor = System::Drawing::Color::Black;
+	}
+
+};
 
 
 }
