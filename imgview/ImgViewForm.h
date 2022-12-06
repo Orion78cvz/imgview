@@ -2,13 +2,6 @@
 
 #include <algorithm>
 
-#include <shlobj.h>
-#include <exdisp.h>
-#include <msclr\com\ptr.h>
-#include <propsys.h>
-
-#include <winuser.h>
-
 #include "resource.h"
 
 #include "Settings.h"
@@ -386,7 +379,7 @@ namespace imgview {
 	}
 	private: array<String^>^ SeekDirectory(String^ filepath) {
 		String^ dir = System::IO::Path::GetDirectoryName(filepath);
-		int orderby = this->AcquireSortingOrder(dir, 0);
+		filesort::SortingOrder orderby = filesort::AcquireSortingOrder(dir, 0);
 
 		Array::Sort(this->listImgExtensions);
 		
@@ -400,7 +393,7 @@ namespace imgview {
 		//Array::Sort(ret);
 		//TODO: Array::Sort()が安定ソートではないので同一値の中で並べ替えが不定になってしまう。データ型を作った方がよさそう
 		switch(orderby) {
-			case 1: {
+			case filesort::SortingOrder::Modified: {
 				array<DateTime>^ dates = gcnew array<DateTime>(ret->Length);
 				for (int i = 0; i < ret->Length; i++) {
 					dates[i] = System::IO::File::GetLastWriteTime(ret[i]);
@@ -408,7 +401,7 @@ namespace imgview {
 				Array::Sort(dates, ret);
 				break;
 			}
-			case 2: {
+			case filesort::SortingOrder::Size: {
 				array<Int64>^ sizes = gcnew array<Int64>(ret->Length);
 				for (int i = 0; i < ret->Length; i++) {
 					sizes[i] = System::IO::FileInfo(ret[i]).Length;
@@ -416,7 +409,7 @@ namespace imgview {
 				Array::Sort(sizes, ret);
 				break;
 			}
-			case 3: {
+			case filesort::SortingOrder::Type: {
 				array<String^>^ exts = gcnew array<String^>(ret->Length);
 				for (int i = 0; i < ret->Length; i++) {
 					exts[i] = System::IO::Path::GetExtension(ret[i]);
@@ -425,7 +418,7 @@ namespace imgview {
 				break;
 			}
 			default:
-				Array::Sort(ret, gcnew LogicalStringComparer());
+				Array::Sort(ret, gcnew filesort::LogicalStringComparer());
 				break;
 		}
 
@@ -453,90 +446,6 @@ namespace imgview {
 	}
 
 	/// <summary>
-	/// 対象ディレクトリを開いているExplorerのウィンドウを探し、ソート方法を取得する
-	/// TODO: メンバ関数にする必要がないのでFileSortInfoへ移動する
-	/// </summary>
-	private: int AcquireSortingOrder(String^ directory, int def) {
-		int ret = def;
-		
-		msclr::com::ptr<IShellWindows> wnds;
-		wnds.CreateInstance(CLSID_ShellWindows);
-
-		long count;
-		if(FAILED(wnds->get_Count(&count))) return ret;
-
-		TCHAR* title = new TCHAR[directory->Length + 2]; //for GetWindowText(), comparing up to the length of the target directory + 1 char
-		title[directory->Length + 1] = '\0';
-		
-		VARIANT vi;
-		V_VT(&vi) = VT_I4;
-		for(V_I4(&vi) = 0; V_I4(&vi) < count; V_I4(&vi)++) {
-			msclr::com::ptr<IDispatch> disp;
-			IDispatch* d;
-			if(FAILED(wnds->Item(vi, &d)) || d == NULL) {
-				System::Diagnostics::Debug::WriteLine("Failed: IShellWindows->Item");
-				continue;
-			}
-			disp = d;
-
-			msclr::com::ptr<IWebBrowserApp> ba;
-			HWND hwnd;
-			disp.QueryInterface(ba);
-			if(!ba) continue;
-			ba->get_HWND(reinterpret_cast<SHANDLE_PTR*>(&hwnd));
-			
-			// Compare to the title bar
-			int rc;
-			rc = ::GetWindowText(hwnd, title, directory->Length + 2);
-			String^ ttl = gcnew String(title);
-			if(rc == 0 || !ttl->Equals(directory)) continue;
-#ifdef _DEBUG
-			System::Diagnostics::Debug::WriteLine("shell window found.");
-#endif
-
-			msclr::com::ptr<::IServiceProvider> sp; //NOTE: is not "System::IServiceProvider"
-			ba.QueryInterface(sp);
-			if(!sp) continue;
-
-			
-			IShellBrowser *b;
-			if(FAILED(sp->QueryService(SID_STopLevelBrowser, &b)) || b == NULL) continue;
-			msclr::com::ptr<IShellBrowser> sb(b);
-
-			IShellView *v;
-			if(FAILED(sb->QueryActiveShellView(&v)) || v == NULL) continue;
-			msclr::com::ptr<IShellView> sv(v);
-
-			msclr::com::ptr<IFolderView2> view;
-			sv.QueryInterface(view);
-			if(!view){
-			} else {
-				SORTCOLUMN sort;
-				PWSTR key;
-				view->GetSortColumns(&sort, 1);
-				PSGetNameFromPropertyKey(sort.propkey, &key);
-				String^ ks = gcnew String(key);
-#ifdef _DEBUG
-				System::Diagnostics::Debug::WriteLine(String::Format("Sort={0}", ks));
-#endif
-				if (ks->EndsWith("DateModified")) {
-					ret = 1;
-				} else if (ks->EndsWith("Size")) {
-					ret = 2;
-				}else if (ks->EndsWith("ItemTypeText")) {
-					ret = 3;
-				}
-
-				break;
-			}
-		}
-
-		delete title;
-
-		return ret;
-	}
-
-	/// <summary>
 	/// 背景色変更
 	/// </summary>
 	private: System::Void menuBackgroundColorDefault_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -549,7 +458,7 @@ namespace imgview {
 		this->pictureImage->BackColor = System::Drawing::Color::Black;
 	}
 
-};
 
+	};
 
 }
