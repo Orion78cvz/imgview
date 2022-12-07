@@ -17,13 +17,17 @@ a simple photo viewer
 
 ## Usage
 
-- Open image file(s) specified in command line arguments.
+- Open image file(s) specified in command line arguments, usually by setting up file associations.
 
 - Press left/right arrow keys to display image files in the same directory.
 
 ## Description
 
 When opening from Explorer window, enumerate the image files by the order same as that Explorer.
+
+## Screenshot
+
+![screenshot](image/screenshot01.jpg)
 
 ## Author
 
