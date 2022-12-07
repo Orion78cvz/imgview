@@ -8,7 +8,15 @@ using namespace System::Windows;
 namespace imgview {
 
 	public ref class Settings sealed: public System::Configuration::ApplicationSettingsBase {
-		public:
+        public:
+            [UserScopedSettingAttribute()]
+            [DefaultSettingValueAttribute("False")]
+            property bool SettingsUpgraded
+            {
+                bool get() { return (bool)this["SettingsUpgraded"]; }
+                void set(bool t) { this["SettingsUpgraded"] = t; }
+            }
+        public:
             [UserScopedSettingAttribute()]
             [DefaultSettingValueAttribute("0")] //Normal
             property System::Windows::Forms::FormWindowState WindowState
@@ -33,6 +41,17 @@ namespace imgview {
                 void set(Drawing::Color color) { this["BackgroundColor"] = color; }
             }
 
+        public:
+            Settings() : ApplicationSettingsBase()
+            {
+                //バージョン(ビルド)が更新された際に古いuser.configを引き継ぐ
+                if(!this->SettingsUpgraded) {
+                    this->Upgrade();
+                    this->SettingsUpgraded = true;
+                    this->Save();
+                    System::Diagnostics::Debug::WriteLine("Configuration file upgraded");
+                }
+            }
 	};
 
 }

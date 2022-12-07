@@ -1,8 +1,11 @@
 #include "ImgViewForm.h"
 
 using namespace System;
+using namespace System::Reflection;
 using namespace System::Windows::Forms;
 using namespace imgview;
+
+[assembly: AssemblyVersionAttribute("1.0.*")];
 
 [STAThreadAttribute]
 int main(array<String^>^ args) {
