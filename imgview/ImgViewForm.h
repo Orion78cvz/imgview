@@ -65,6 +65,11 @@ namespace imgview {
 	private: System::Windows::Forms::ToolStripMenuItem^ menuBackgroundColorDefault;
 
 	private: System::Windows::Forms::ToolStripMenuItem^ menuBackgroundColorBlack;
+	private: System::Windows::Forms::Panel^ panelMain;
+
+	private: System::Windows::Forms::ToolStripMenuItem^ ズームZToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ menuZoomDefault;
+	private: System::Windows::Forms::ToolStripMenuItem^ menuZoomOrigin;
 
 
 
@@ -115,6 +120,9 @@ namespace imgview {
 			this->menuOpenFile = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->menuExit = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->表示VToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->ズームZToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->menuZoomDefault = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->menuZoomOrigin = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->背景色BToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->menuBackgroundColorDefault = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->menuBackgroundColorWhite = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -124,9 +132,11 @@ namespace imgview {
 			this->statusFilePath = (gcnew System::Windows::Forms::ToolStripStatusLabel());
 			this->statusFileIndex = (gcnew System::Windows::Forms::ToolStripStatusLabel());
 			this->pictureImage = (gcnew System::Windows::Forms::PictureBox());
+			this->panelMain = (gcnew System::Windows::Forms::Panel());
 			this->MainMenu->SuspendLayout();
 			this->statusStrip->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureImage))->BeginInit();
+			this->panelMain->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// MainMenu
@@ -167,10 +177,37 @@ namespace imgview {
 			// 
 			// 表示VToolStripMenuItem
 			// 
-			this->表示VToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->背景色BToolStripMenuItem });
+			this->表示VToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->ズームZToolStripMenuItem,
+					this->背景色BToolStripMenuItem
+			});
 			this->表示VToolStripMenuItem->Name = L"表示VToolStripMenuItem";
 			this->表示VToolStripMenuItem->Size = System::Drawing::Size(58, 20);
 			this->表示VToolStripMenuItem->Text = L"表示(&V)";
+			// 
+			// ズームZToolStripMenuItem
+			// 
+			this->ズームZToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->menuZoomDefault,
+					this->menuZoomOrigin
+			});
+			this->ズームZToolStripMenuItem->Name = L"ズームZToolStripMenuItem";
+			this->ズームZToolStripMenuItem->Size = System::Drawing::Size(142, 22);
+			this->ズームZToolStripMenuItem->Text = L"拡大/縮小(&Z)";
+			// 
+			// menuZoomDefault
+			// 
+			this->menuZoomDefault->Name = L"menuZoomDefault";
+			this->menuZoomDefault->Size = System::Drawing::Size(133, 22);
+			this->menuZoomDefault->Text = L"デフォルト(&D)";
+			this->menuZoomDefault->Click += gcnew System::EventHandler(this, &ImgViewForm::menuZoomDefault_Click);
+			// 
+			// menuZoomOrigin
+			// 
+			this->menuZoomOrigin->Name = L"menuZoomOrigin";
+			this->menuZoomOrigin->Size = System::Drawing::Size(133, 22);
+			this->menuZoomOrigin->Text = L"原寸(&O)";
+			this->menuZoomOrigin->Click += gcnew System::EventHandler(this, &ImgViewForm::menuZoomOrigin_Click);
 			// 
 			// 背景色BToolStripMenuItem
 			// 
@@ -179,7 +216,7 @@ namespace imgview {
 					this->menuBackgroundColorWhite, this->menuBackgroundColorBlack
 			});
 			this->背景色BToolStripMenuItem->Name = L"背景色BToolStripMenuItem";
-			this->背景色BToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+			this->背景色BToolStripMenuItem->Size = System::Drawing::Size(142, 22);
 			this->背景色BToolStripMenuItem->Text = L"背景色(&B)";
 			// 
 			// menuBackgroundColorDefault
@@ -242,19 +279,29 @@ namespace imgview {
 			// 
 			this->pictureImage->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->pictureImage->ImageLocation = L"";
-			this->pictureImage->Location = System::Drawing::Point(0, 24);
+			this->pictureImage->Location = System::Drawing::Point(0, 0);
 			this->pictureImage->Name = L"pictureImage";
 			this->pictureImage->Size = System::Drawing::Size(624, 395);
 			this->pictureImage->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
 			this->pictureImage->TabIndex = 2;
 			this->pictureImage->TabStop = false;
 			// 
+			// panelMain
+			// 
+			this->panelMain->AutoScroll = true;
+			this->panelMain->Controls->Add(this->pictureImage);
+			this->panelMain->Dock = System::Windows::Forms::DockStyle::Fill;
+			this->panelMain->Location = System::Drawing::Point(0, 24);
+			this->panelMain->Name = L"panelMain";
+			this->panelMain->Size = System::Drawing::Size(624, 395);
+			this->panelMain->TabIndex = 3;
+			// 
 			// ImgViewForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(624, 441);
-			this->Controls->Add(this->pictureImage);
+			this->Controls->Add(this->panelMain);
 			this->Controls->Add(this->statusStrip);
 			this->Controls->Add(this->MainMenu);
 			this->MainMenuStrip = this->MainMenu;
@@ -269,6 +316,7 @@ namespace imgview {
 			this->statusStrip->ResumeLayout(false);
 			this->statusStrip->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureImage))->EndInit();
+			this->panelMain->ResumeLayout(false);
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -305,7 +353,7 @@ namespace imgview {
 		this->Size = this->appSettings->FormClientSize;
 		this->WindowState = this->appSettings->WindowState;
 		
-		this->pictureImage->BackColor = this->appSettings->BackgroundColor;
+		this->panelMain->BackColor = this->appSettings->BackgroundColor;
 	}
 	/// <summary>
 	/// Form::OnClosing
@@ -322,14 +370,13 @@ namespace imgview {
 			break;
 		}
 
-		this->appSettings->BackgroundColor = this->pictureImage->BackColor;
+		this->appSettings->BackgroundColor = this->panelMain->BackColor;
 
 		this->appSettings->Save();
 	}
 
 	/// <summary>
-	/// ウィンドウサイズ変更で画像表示を更新
-	/// INFO: 現状PictureBoxのSizeModeがZoom固定なので細かい処理はない
+	/// ウィンドウサイズ変更で表示情報を更新
 	/// </summary>
 	private: System::Void ImgViewForm_SizeChanged(System::Object^ sender, System::EventArgs^ e) {
 		int dr = 0;
@@ -427,6 +474,8 @@ namespace imgview {
 
 	/// <summary>
 	/// 操作用キー入力処理
+	///  Left/Right: prev/next image
+	///  +/-: zoom
 	/// </summary>
 	private: System::Void ImgViewForm_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e) {
 		switch(e->KeyCode) {
@@ -434,13 +483,21 @@ namespace imgview {
 			if(this->foundFileNames && this->currentPos > 0) {
 				this->currentPos--;
 				this->LoadImage(this->foundFileNames[this->currentPos]);
+				this->menuZoomDefault_Click(nullptr, nullptr);
 			}
 			break;
 		case Keys::Right:
 			if (this->foundFileNames && this->currentPos < this->foundFileNames->Length - 1) {
 				this->currentPos++;
 				this->LoadImage(this->foundFileNames[this->currentPos]);
+				this->menuZoomDefault_Click(nullptr, nullptr);
 			}
+			break;
+		case Keys::Oemplus:
+			this->keyIncrementalZoom(+10);
+			break;
+		case Keys::OemMinus:
+			this->keyIncrementalZoom(-10);
 			break;
 		}
 	}
@@ -449,16 +506,45 @@ namespace imgview {
 	/// 背景色変更
 	/// </summary>
 	private: System::Void menuBackgroundColorDefault_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->pictureImage->BackColor = System::Drawing::SystemColors::Control;
+		this->panelMain->BackColor = System::Drawing::SystemColors::Control;
 	}
 	private: System::Void menuBackgroundColorWhite_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->pictureImage->BackColor = System::Drawing::Color::White;
+		this->panelMain->BackColor = System::Drawing::Color::White;
 	}
 	private: System::Void menuBackgroundColorBlack_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->pictureImage->BackColor = System::Drawing::Color::Black;
+		this->panelMain->BackColor = System::Drawing::Color::Black;
 	}
 
+	/// <summary>
+	/// 表示サイズ変更
+	/// </summary>
+	private: System::Void menuZoomDefault_Click(System::Object^ sender, System::EventArgs^ e) {
+		pictureImage->Dock = Forms::DockStyle::Fill;
+		pictureImage->SizeMode = Forms::PictureBoxSizeMode::Zoom;
+		ImgViewForm_SizeChanged(nullptr, nullptr);
+	}
+	private: System::Void menuZoomOrigin_Click(System::Object^ sender, System::EventArgs^ e) {
+		pictureImage->Dock = Forms::DockStyle::None;
+		pictureImage->SizeMode = Forms::PictureBoxSizeMode::AutoSize;
+		ImgViewForm_SizeChanged(nullptr, nullptr);
+	}
+	private: System::Void keyIncrementalZoom(int ratio) {
+		if(!this->pictureImage->Image) return;
 
-	};
+		Drawing::Size picsize = this->pictureImage->Image->Size;
+		Drawing::Size cs = this->pictureImage->Size;
+		
+		pictureImage->Dock = Forms::DockStyle::None;
+		pictureImage->SizeMode = Forms::PictureBoxSizeMode::Zoom;
+
+		cs.Width = (std::max)(1, cs.Width + ratio * picsize.Width / 100);
+		cs.Height = (std::max)(1, cs.Height + ratio * picsize.Height / 100);
+		pictureImage->Size = cs;
+		//MEMO: とりあえず位置調整はしないでおく
+
+		ImgViewForm_SizeChanged(nullptr, nullptr);
+	}
+
+};
 
 }
