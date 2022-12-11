@@ -17,6 +17,8 @@ a simple photo viewer
 
 ## Usage
 
+- Supported formats: BMP/GIF/JPEG/PNG/TIFF/ICON
+
 - Open image file(s) specified in command line arguments, usually by setting up file associations.
 
 - Press left/right arrow keys to display image files in the same directory.
