@@ -26,9 +26,9 @@ namespace imgview {
 			this->appSettings = gcnew imgview::Settings;
 
 			InitializeComponent();
-		
-			this->InitializeExtensions();
-			if(filenames && filenames->Length > 0) {
+			this->LoadSettings();
+
+			if (filenames && filenames->Length > 0) {
 				this->ShowSelectedImage(filenames, true);
 			}
 		}
@@ -347,14 +347,22 @@ namespace imgview {
 
 	/// <summary>
 	/// Form::OnLoad
-	///   Settingsを適用する
 	/// </summary>
 	private: System::Void ImgViewForm_Load(System::Object^ sender, System::EventArgs^ e) {
+	}
+
+	/// <summary>
+	///   Settingsを読み込んで適用する
+	/// </summary>
+	private: System::Void LoadSettings() {
 		this->Size = this->appSettings->FormClientSize;
 		this->WindowState = this->appSettings->WindowState;
-		
+
 		this->panelMain->BackColor = this->appSettings->BackgroundColor;
+
+		this->InitializeExtensions();
 	}
+
 	/// <summary>
 	/// Form::OnClosing
 	///   Settingsを保存する
