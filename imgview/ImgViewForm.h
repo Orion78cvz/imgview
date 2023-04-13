@@ -419,7 +419,6 @@ namespace imgview {
 			String^ cf = filenames[0];
 
 			array<String^>^ founds = this->SeekDirectory(cf);
-
 #ifdef _DEBUG
 			for(int i = 0; i < (std::min)(10, founds->Length); i++) System::Diagnostics::Debug::WriteLine(founds[i]);
 #endif
@@ -429,6 +428,7 @@ namespace imgview {
 #else
 			this->currentPos = (std::max)(0, System::Array::IndexOf(founds, cf));
 #endif
+
 			this->LoadImage(cf);
 		}
 	}
@@ -440,13 +440,13 @@ namespace imgview {
 		
 		Generic::List<String^>^ fls = gcnew Generic::List<String^>();
 		for each (String ^ ex in this->listImgExtensions) {
-			array<String^>^ fs = System::IO::Directory::GetFiles(dir, ex); //NOTE: 単一ディレクトリで固定ならばファイル名部分のみでよい
+			array<String^>^ fs = System::IO::Directory::GetFiles(dir, ex); //NOTE: 単一ディレクトリで固定ならばファイル名部分のみでよい(が、今のところそのまま処理する)
+			if(orderby == filesort::SortingOrder::Type) Array::Sort(fs, gcnew filesort::LogicalStringComparer()); //ad hoc
 			if(fs->Length > 0) fls->AddRange(fs);
 		}
 
 		array<String^>^ ret = fls->ToArray();
-		//Array::Sort(ret);
-		//TODO: Array::Sort()が安定ソートではないので同一値の中で並べ替えが不定になってしまう。データ型を作った方がよさそう
+		//TODO: Array::Sort()が安定ソートではないので同一値の中で並べ替えが不定になってしまう。データ型を作った方がよさそう(拡張子以外は影響が小さいので優先度低)
 		switch(orderby) {
 			case filesort::SortingOrder::Modified: {
 				array<DateTime>^ dates = gcnew array<DateTime>(ret->Length);
@@ -465,11 +465,7 @@ namespace imgview {
 				break;
 			}
 			case filesort::SortingOrder::Type: {
-				array<String^>^ exts = gcnew array<String^>(ret->Length);
-				for (int i = 0; i < ret->Length; i++) {
-					exts[i] = System::IO::Path::GetExtension(ret[i]);
-				}
-				Array::Sort(exts, ret);
+				//(ad hoc) GetFiles()の際にソート済み
 				break;
 			}
 			default:
