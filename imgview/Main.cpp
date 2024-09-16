@@ -5,7 +5,7 @@ using namespace System::Reflection;
 using namespace System::Windows::Forms;
 using namespace imgview;
 
-[assembly: AssemblyVersionAttribute("1.1.0.1")];
+[assembly: AssemblyVersionAttribute("1.1.0.2")];
 
 [STAThreadAttribute]
 int main(array<String^>^ args) {

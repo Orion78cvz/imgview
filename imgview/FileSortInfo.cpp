@@ -6,6 +6,7 @@
 #include <shlobj.h>
 #include <exdisp.h>
 #include <msclr\com\ptr.h>
+#include <combaseapi.h>
 #include <propsys.h>
 
 #include <winuser.h>
@@ -39,8 +40,8 @@ namespace filesort {
 		long count;
 		if (FAILED(wnds->get_Count(&count))) return ret;
 
-		TCHAR* title = new TCHAR[directory->Length + 2]; //for GetWindowText(), comparing up to the length of the target directory + 1 char
-		title[directory->Length + 1] = '\0';
+		TCHAR* fdpathbuf = new TCHAR[directory->Length + 2]; //for current folder path, compared up to the length of the target directory + 1
+		fdpathbuf[directory->Length + 1] = '\0';
 
 		VARIANT vi;
 		V_VT(&vi) = VT_I4;
@@ -48,30 +49,20 @@ namespace filesort {
 			msclr::com::ptr<IDispatch> disp;
 			IDispatch* d;
 			if (FAILED(wnds->Item(vi, &d)) || d == NULL) {
+#ifdef _DEBUG
 				System::Diagnostics::Debug::WriteLine("Failed: IShellWindows->Item");
+#endif
 				continue;
 			}
 			disp = d;
 
 			msclr::com::ptr<IWebBrowserApp> ba;
-			HWND hwnd;
 			disp.QueryInterface(ba);
 			if (!ba) continue;
-			ba->get_HWND(reinterpret_cast<SHANDLE_PTR*>(&hwnd));
-
-			// Compare to the title bar
-			int rc;
-			rc = ::GetWindowText(hwnd, title, directory->Length + 2);
-			String^ ttl = gcnew String(title);
-			if (rc == 0 || !ttl->Equals(directory)) continue;
-	#ifdef _DEBUG
-			System::Diagnostics::Debug::WriteLine("shell window found.");
-	#endif
 
 			msclr::com::ptr<::IServiceProvider> sp; //NOTE: is not "System::IServiceProvider"
 			ba.QueryInterface(sp);
 			if (!sp) continue;
-
 
 			IShellBrowser* b;
 			if (FAILED(sp->QueryService(SID_STopLevelBrowser, &b)) || b == NULL) continue;
@@ -83,32 +74,50 @@ namespace filesort {
 
 			msclr::com::ptr<IFolderView2> view;
 			sv.QueryInterface(view);
-			if (!view) {
+			if (!view) continue;
+			
+			IPersistFolder2* f;
+			if (view->GetFolder(IID_PPV_ARGS(&f)) != S_OK) {
+				continue;
 			}
-			else {
-				SORTCOLUMN sort;
-				PWSTR key;
-				view->GetSortColumns(&sort, 1);
-				PSGetNameFromPropertyKey(sort.propkey, &key);
-				String^ ks = gcnew String(key);
-	#ifdef _DEBUG
-				System::Diagnostics::Debug::WriteLine(String::Format("Sort={0}", ks));
-	#endif
-				if (ks->EndsWith("DateModified")) {
-					ret = SortingOrder::Modified;
-				}
-				else if (ks->EndsWith("Size")) {
-					ret = SortingOrder::Size;
-				}
-				else if (ks->EndsWith("ItemTypeText")) {
-					ret = SortingOrder::Type;
-				}
+			msclr::com::ptr<IPersistFolder2> folder(f);
 
-				break;
+			{ //MEMO: CComHeapPtr‚ðŽg‚¢‚½‚¢
+				LPITEMIDLIST fpid;
+				folder->GetCurFolder(&fpid);
+				if (!::SHGetPathFromIDListEx(fpid, fdpathbuf, directory->Length + 2, GPFIDL_DEFAULT)) {
+					//TODO: continue;
+				}
+				CoTaskMemFree(fpid);
 			}
+			String^ cfpath = gcnew String(fdpathbuf);
+			if (!cfpath->Equals(directory)) continue;
+#ifdef _DEBUG
+			System::Diagnostics::Debug::WriteLine("shell window found.");
+#endif
+
+			SORTCOLUMN sort;
+			PWSTR key;
+			view->GetSortColumns(&sort, 1);
+			PSGetNameFromPropertyKey(sort.propkey, &key);
+			String^ ks = gcnew String(key);
+#ifdef _DEBUG
+			System::Diagnostics::Debug::WriteLine(String::Format("Sort={0}", ks));
+#endif
+			if (ks->EndsWith("DateModified")) {
+				ret = SortingOrder::Modified;
+			}
+			else if (ks->EndsWith("Size")) {
+				ret = SortingOrder::Size;
+			}
+			else if (ks->EndsWith("ItemTypeText")) {
+				ret = SortingOrder::Type;
+			}
+
+			break;
 		}
 
-		delete title;
+		delete fdpathbuf;
 
 		return ret;
 	}
